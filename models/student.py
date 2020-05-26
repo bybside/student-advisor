@@ -30,10 +30,19 @@ class Student(db.Base):
     def add(session, student):
         session.add(student)
     
+    @staticmethod
+    def delete(session, student):
+        session.delete(student)
+    
     @classmethod
     def get_all(cls, session):
         return session.query(cls).all()
     
+    @classmethod
+    def find_by_id(cls, session, student_id: int):
+        query = session.query(cls).filter_by(id=student_id)
+        return query.one()
+
     @classmethod
     def find_by_name(cls, session, fname: str, lname: str):
         query = session.query(cls).filter_by(lname=lname, fname=fname)

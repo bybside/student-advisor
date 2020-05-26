@@ -1,0 +1,18 @@
+<html>
+    <body>
+        <h4>Edit Student</h4>
+        <form method="POST" enctype="multipart/form-data" action="/{{ student.id }}/edit/">
+            <label>ID:</label>
+            <input name="id" type="text" value="{{ student.id }}" disabled><br>
+            <label>DOB:</label>
+            <input name="dob" type="text" value="{{ student.dob }}"><br>
+            <label>Graduation Year:</label>
+            <input name="grad_year" type="text" value="{{ student.grad_year }}"><br>
+            <label>GPA:</label>
+            <input name="gpa" type="text" value="{{ student.gpa }}"><br>
+            <label>Occupation:</label>
+            <input name="occupation" type="text" value="{{ student.occupation.occupation_name }}" disabled><br>
+            <input type="submit" value="Submit">
+        </form>
+    </body>
+</html>
