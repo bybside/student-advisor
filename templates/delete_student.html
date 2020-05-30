@@ -2,10 +2,10 @@
     <body>
         <h4>Delete Student</h4>
         <div>Are you sure you want to delete this student?</div>
-        <form method="POST" enctype="multipart/form-data" action="/{{ student.id }}/delete/">
+        <form method="POST" enctype="multipart/form-data" action="{{ url_for('delete_student', student_id=student.id) }}">
             <input type="submit" value="Yes">
         </form>
-        <a href="/students/">
+        <a href="{{ url_for('get_all_students') }}">
             <button>No</button>
         </a>
     </body>

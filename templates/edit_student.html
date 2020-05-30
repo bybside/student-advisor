@@ -1,9 +1,13 @@
 <html>
     <body>
         <h4>Edit Student</h4>
-        <form method="POST" enctype="multipart/form-data" action="/{{ student.id }}/edit/">
+        <form method="POST" enctype="multipart/form-data" action="{{ url_for('edit_student', student_id=student.id) }}">
             <label>ID:</label>
             <input name="id" type="text" value="{{ student.id }}" disabled><br>
+            <label>First Name:</label>
+            <input name="fname" type="text" value="{{ student.fname }}"><br>
+            <label>Last Name:</label>
+            <input name="lname" type="text" value="{{ student.lname }}"><br>
             <label>DOB:</label>
             <input name="dob" type="text" value="{{ student.dob }}"><br>
             <label>Graduation Year:</label>

@@ -11,16 +11,27 @@ def get_all_students():
         all_students = Student.get_all(session)
         return render_template("students.html", students=all_students)
 
-@app.route("/students/<int:student_id>/edit/")
+@app.route("/students/<int:student_id>/edit/", methods=["GET", "POST"])
 def edit_student(student_id: int):
     with db.session_scope() as session:
         student = Student.find_by_id(session, student_id)
+        if request.method == "POST":
+            student.fname = request.form["fname"]
+            student.lname = request.form["lname"]
+            student.dob = request.form["dob"]
+            student.grad_year = request.form["grad_year"]
+            student.gpa = request.form["gpa"]
+            Student.add(session, student)
+            return redirect(url_for("get_all_students"))
         return render_template("edit_student.html", student=student)
 
-@app.route("/students/<int:student_id>/delete/")
+@app.route("/students/<int:student_id>/delete/", methods=["GET", "POST"])
 def delete_student(student_id: int):
     with db.session_scope() as session:
         student = Student.find_by_id(session, student_id)
+        if request.method == "POST":
+            Student.delete(session, student)
+            return redirect(url_for("get_all_students"))
         return render_template("delete_student.html", student=student)
 
 @app.route("/students/create/", methods=["GET", "POST"])
