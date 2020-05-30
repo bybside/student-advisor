@@ -1,0 +1,20 @@
+<html>
+    <body>
+        <h4>Create Student</h4>
+        <form method="POST" enctype="multipart/form-data" action="{{ url_for('create_student') }}">
+            <label>First Name:</label>
+            <input name="fname" type="text"><br>
+            <label>Last Name:</label>
+            <input name="lname" type="text"><br>
+            <label>DOB:</label>
+            <input name="dob" type="text"><br>
+            <label>Graduation Year:</label>
+            <input name="grad_year" type="text"><br>
+            <label>GPA:</label>
+            <input name="gpa" type="text"><br>
+            <label>Occupation:</label>
+            <input name="occupation_name" type="text"><br>
+            <input type="submit" value="Submit">
+        </form>
+    </body>
+</html>

@@ -1,4 +1,4 @@
-from flask import render_template, url_for
+from flask import render_template, url_for, request, redirect
 from app import app
 from models.occupation import Occupation
 from models.student import Student
@@ -7,7 +7,6 @@ from models.dbcontext import DbContext as db
 @app.route("/")
 @app.route("/students/")
 def get_all_students():
-    output = ""
     with db.session_scope() as session:
         all_students = Student.get_all(session)
         return render_template("students.html", students=all_students)
@@ -24,11 +23,20 @@ def delete_student(student_id: int):
         student = Student.find_by_id(session, student_id)
         return render_template("delete_student.html", student=student)
 
-# @app.route("/students/create/")
-# def create_student():
-#     student = Student(fname, lname, dob, grad_year, gpa, occupation)
-#     with db.session_scope() as session:
-#         Student.add(session, student)
+@app.route("/students/create/", methods=["GET", "POST"])
+def create_student():
+    if request.method == "POST":
+        with db.session_scope() as session:
+            occupation = Occupation.find_by_name(session, request.form["occupation_name"])
+            student = Student(fname=request.form["fname"],
+                              lname=request.form["lname"],
+                              dob=request.form["dob"],
+                              grad_year=request.form["grad_year"],
+                              gpa=request.form["gpa"],
+                              occupation=occupation)
+            Student.add(session, student)
+        return redirect(url_for("get_all_students"))
+    return render_template("create_student.html")
 
 # def create_student(fname: str, lname: str, dob: str, grad_year: int, gpa: float, occupation: Occupation):
 #     student = Student(fname, lname, dob, grad_year, gpa, occupation)

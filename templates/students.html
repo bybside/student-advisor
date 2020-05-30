@@ -1,5 +1,7 @@
 <head>
     <body>
+        <h3>All Students</h3>
+        <a href="{{ url_for('create_student') }}">Create New Student</a>
         {% for student in students %}
         <h4>{{ student.fname }} {{ student.lname }}</h4>
         <div>
