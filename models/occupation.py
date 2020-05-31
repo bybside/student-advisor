@@ -31,5 +31,15 @@ class Occupation(db.Base):
         query = session.query(cls).filter_by(occupation_name=occupation_name)
         return query.one()
 
+    @property
+    def serialize(self):
+        """
+        needed to make Student objects JSON serializable
+        """
+        return {
+            "occupation_name": self.occupation_name,
+            "median_sal": self.median_sal
+        }
+
     def __repr__(self):
         return f"Occupation({self.occupation_name}, {self.median_sal})"

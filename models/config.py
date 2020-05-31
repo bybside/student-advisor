@@ -18,3 +18,5 @@ class Config:
     ENV = __parser["flask"]["env"]
     DEBUG = __parser["flask"].getboolean("debug")
     TESTING = __parser["flask"].getboolean("testing")
+    # flask uses a secret key to create sessions for application users
+    SECRET_KEY = __parser["flask"]["secret_key"]

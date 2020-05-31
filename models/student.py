@@ -58,6 +58,20 @@ class Student(db.Base):
     #     session = db.Session()
     #     query = session.query(cls).filter_by(gpa=gpa)
     #     return query.all()
+
+    @property
+    def serialize(self):
+        """
+        needed to make Student objects JSON serializable
+        """
+        return {
+            "fname": self.fname,
+            "lname": self.lname,
+            "dob": self.dob,
+            "grad_year": self.grad_year,
+            "gpa": self.gpa,
+            "occupation": self.occupation.occupation_name
+        }
     
     def __repr__(self):
         return f"Student({self.fname}, {self.lname}, {self.dob}, {self.grad_year}, {self.gpa})"
