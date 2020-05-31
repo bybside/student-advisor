@@ -1,0 +1,38 @@
+To-Do:
+    - add column lengths to string fields in model classes: Column(String(x))
+    - specify nullable attributes on model class fields: Column(type, nullable=bool)
+    - handle sessions at an endpoint level, i.e. per request; methods that query
+      or manipulate data directly in the database should not also handle the lifecycle
+      of a session (https://docs.sqlalchemy.org/en/13/orm/session_basics.html)*
+    - handle circular imports in Flask configuration (app.py, routes.py)
+    - update project directory structure to meet Flask documentation recommendations
+
+Application Design:
+    - in order of implementation level:
+      1. config (flat-file): defines application config info (db connection info/credentials + Flask config)
+      2. Config (class): parses and makes application config info accessible to application  
+      3. DbContext (class): defines db connection string and handles db sessions
+      4. <model_name> (class): defines a model class for use by SQLAlchemy ORM
+      5. <controller_name> (<controller_name>.py): defines application endpoints (APIs)
+      6. web server (app.py): exposes endpoints defined in controller files
+
+Notes:
+    - Student X is a high school upperclassman
+    - 3 Questions for Student X:
+      - what do former students like Student X do for a living?
+      - what do former student like Student X have a college degree in?
+      - for former students like Student X, is occupation outcome correlated with GPA?
+    
+    - Student Snapshot:
+      - class rank (based on GPA)
+      - historical rank (based on GPA)
+      - career fit (career_1: %, career_2: %, career_3: %)
+      - strongest subject (max gpa by subject)
+      - weakest subject (min gpa by subject)
+    
+    - School Snapshot:
+      - historical class ranking:
+        - average median-salary by graduating class
+        - average gpa by graduating class
+      - most common occupation (occupation_1: %, occupation_2: %, occupation_3: %)
+      - historical gpa analysis (mean|median|mode for all recorded students)
