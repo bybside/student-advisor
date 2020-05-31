@@ -1,9 +1,0 @@
-To-Do:
-    - add column lengths to string fields in model classes: Column(String(x))
-    - specify nullable attributes on model class fields: Column(type, nullable=bool)
-    - handle sessions at an endpoint level, i.e. per request; methods that query
-      or manipulate data directly in the database should not also handle the lifecycle
-      of a session (https://docs.sqlalchemy.org/en/13/orm/session_basics.html)*
-    - handle circular imports in Flask configuration (app.py, routes.py)
-    - update project directory structure to meet Flask documentation recommendations
-    
