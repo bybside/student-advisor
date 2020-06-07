@@ -6,6 +6,20 @@ To-Do:
       of a session (https://docs.sqlalchemy.org/en/13/orm/session_basics.html)*
     - handle circular imports in Flask configuration (app.py, routes.py)
     - update project directory structure to meet Flask documentation recommendations
+    - create remaining dummy data and model objects:
+	- occupation*
+	- student*
+    	- field*
+	- faculty*
+	- semester*
+	- course*
+	- grade*
+    - resolve student course relationship issue (grade associative entity)
+    - generate first student snapshot:
+	- each student snapshot method (listed below) will be defined in Student model object
+    - generate first school snapshot:
+	- aggregated using all data in database (we are currently storing data for one school)
+    - each school lives in its own container?
 
 Application Design:
     - in order of implementation level:

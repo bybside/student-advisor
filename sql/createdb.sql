@@ -64,7 +64,8 @@ drop table if exists grade;
 create table grade (
     grade integer,
     student_id integer references student (id),
-    course_id integer references course (id)
+    course_id integer references course (id),
+    primary key(student_id, course_id)
 );
 -- update table owner to your user
 alter table occupation owner to <db_user>;

@@ -1,7 +1,6 @@
 from sqlalchemy import Column, Integer, String, Float, Date, ForeignKey
 from sqlalchemy.orm import relationship
 from models.dbcontext import DbContext as db
-# from models.occupation import Occupation
 
 class Student(db.Base):
     """
@@ -17,14 +16,15 @@ class Student(db.Base):
     gpa = Column(Float)
     occupation_id = Column(Integer, ForeignKey("occupation.id"))
     occupation = relationship("Occupation")
+    grades = relationship("Grade")
 
-    def __init__(self, fname, lname, dob, grad_year, gpa, occupation):
+    def __init__(self, fname, lname, dob, grad_year, gpa, occupation_id):
         self.fname = fname
         self.lname = lname
         self.dob = dob
         self.grad_year = grad_year
         self.gpa = gpa
-        self.occupation = occupation
+        self.occupation_id = occupation_id
     
     @staticmethod
     def add(session, student):
@@ -65,13 +65,15 @@ class Student(db.Base):
         needed to make Student objects JSON serializable
         """
         return {
+            "id": self.id,
             "fname": self.fname,
             "lname": self.lname,
             "dob": self.dob,
             "grad_year": self.grad_year,
             "gpa": self.gpa,
-            "occupation": self.occupation.occupation_name
+            "occupation": self.occupation.serialize,
+            "grades": [g.serialize for g in self.grades]
         }
     
     def __repr__(self):
-        return f"Student({self.fname}, {self.lname}, {self.dob}, {self.grad_year}, {self.gpa})"
+        return f"Student({self.id}, {self.fname}, {self.lname}, {self.dob}, {self.grad_year}, {self.gpa}, {self.occupation}, {self.courses})"

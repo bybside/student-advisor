@@ -1,7 +1,6 @@
 from sqlalchemy import Column, String, Integer
 from sqlalchemy.orm import relationship
 from models.dbcontext import DbContext as db
-# from models.student import Student
 
 class Occupation(db.Base):
     """
@@ -34,12 +33,13 @@ class Occupation(db.Base):
     @property
     def serialize(self):
         """
-        needed to make Student objects JSON serializable
+        needed to make Occupation objects JSON serializable
         """
         return {
+            "id": self.id,
             "occupation_name": self.occupation_name,
             "median_sal": self.median_sal
         }
 
     def __repr__(self):
-        return f"Occupation({self.occupation_name}, {self.median_sal})"
+        return f"Occupation({self.id}, {self.occupation_name}, {self.median_sal})"

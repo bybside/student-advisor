@@ -2,6 +2,11 @@ from flask import render_template, url_for, request, redirect, flash, jsonify
 from app import app
 from models.occupation import Occupation
 from models.student import Student
+from models.course import Course
+from models.faculty import Faculty
+from models.field import Field
+from models.semester import Semester
+from models.grade import Grade
 from models.dbcontext import DbContext as db
 
 @app.route("/")
@@ -11,6 +16,48 @@ def get_all_students():
         all_students = Student.get_all(session)
         serialized = [s.serialize for s in all_students]
         return jsonify(students=serialized)
+
+@app.route("/courses/")
+def get_all_courses():
+    with db.session_scope() as session:
+        all_courses = Course.get_all(session)
+        serialized = [c.serialize for c in all_courses]
+        return jsonify(courses=serialized)
+
+@app.route("/occupations/")
+def get_all_occupations():
+    with db.session_scope() as session:
+        all_occupations = Occupation.get_all(session)
+        serialized = [o.serialize for o in all_occupations]
+        return jsonify(occupations=serialized)
+
+@app.route("/faculty/")
+def get_all_faculty():
+    with db.session_scope() as session:
+        all_faculty = Faculty.get_all(session)
+        serialized = [f.serialize for f in all_faculty]
+        return jsonify(faculty=serialized)
+
+@app.route("/fields/")
+def get_all_fields():
+    with db.session_scope() as session:
+        all_fields = Field.get_all(session)
+        serialized = [f.serialize for f in all_fields]
+        return jsonify(fields=serialized)
+
+@app.route("/semesters/")
+def get_all_semesters():
+    with db.session_scope() as session:
+        all_semesters = Semester.get_all(session)
+        serialized = [s.serialize for s in all_semesters]
+        return jsonify(semesters=serialized)
+
+@app.route("/grades/")
+def get_all_grades():
+    with db.session_scope() as session:
+        all_grades = Grade.get_all(session)
+        serialized = [g.serialize for g in all_grades]
+        return jsonify(grades=serialized)
 
 @app.route("/students/<int:student_id>/", methods=["GET"])
 def get_student(student_id: int):
