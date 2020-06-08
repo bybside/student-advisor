@@ -39,7 +39,20 @@ class Course(db.Base):
             "field": self.field.serialize,
             "faculty": self.faculty.serialize,
             "semester": self.semester.serialize,
-            "grades": [g.serialize for g in self.grades]
+            "grades": [
+                {
+                    "grade": g.grade,
+                    "student": {
+                        "id": g.student.id,
+                        "fname": g.student.fname,
+                        "lname": g.student.lname,
+                        "dob": g.student.dob,
+                        "grad_year": g.student.grad_year,
+                        "gpa": g.student.gpa,
+                        "occupation": g.student.occupation.serialize
+                    }
+                } for g in self.grades
+            ]
         }
     
     def __repr__(self):

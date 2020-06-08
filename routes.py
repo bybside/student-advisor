@@ -59,7 +59,13 @@ def get_all_grades():
         serialized = [g.serialize for g in all_grades]
         return jsonify(grades=serialized)
 
-@app.route("/students/<int:student_id>/", methods=["GET"])
+@app.route("/students/<int:student_id>/snapshot/")
+def get_snapshot(student_id: int):
+    with db.session_scope() as session:
+        snapshot = Student.snapshot(session, student_id)
+        return jsonify(snapshot=snapshot.serialize)
+
+@app.route("/students/<int:student_id>/")
 def get_student(student_id: int):
     with db.session_scope() as session:
         student = Student.find_by_id(session, student_id)

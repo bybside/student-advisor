@@ -7,19 +7,22 @@ To-Do:
     - handle circular imports in Flask configuration (app.py, routes.py)
     - update project directory structure to meet Flask documentation recommendations
     - create remaining dummy data and model objects:
-	- occupation*
-	- student*
-    	- field*
-	- faculty*
-	- semester*
-	- course*
-	- grade*
-    - resolve student course relationship issue (grade associative entity)
+      - occupation*
+      - student*
+      - field*
+      - faculty*
+      - semester*
+      - course*
+      - grade*
+    - resolve student course relationship issue (grade associative entity)*
     - generate first student snapshot:
-	- each student snapshot method (listed below) will be defined in Student model object
+	    - each student snapshot method (listed below) will be defined in Student model object*
+      - complete method for career fit
     - generate first school snapshot:
-	- aggregated using all data in database (we are currently storing data for one school)
+	    - aggregated using all data in database (we are currently storing data for one school)
     - each school lives in its own container?
+    - organize endpoint code into seperate controllers (by entity/model object)
+    - seperate model objects from non-model objects (directory structure)
 
 Application Design:
     - in order of implementation level:
@@ -38,15 +41,37 @@ Notes:
       - for former students like Student X, is occupation outcome correlated with GPA?
     
     - Student Snapshot:
-      - class rank (based on GPA)
-      - historical rank (based on GPA)
+      - class rank (based on GPA)*:
+        - select rank
+          from (
+            select id, rank() over(order by gpa desc) as class_rank
+            from student
+            where grad_year = <student_grad_year>
+          )
+          where id = <student_id>;
+      - historical rank (based on GPA)*:
+        - select rank
+          from (
+            select id, rank() over(order by gpa desc) as class_rank
+            from student
+          )
+          where id = <student_id>;
       - career fit (career_1: %, career_2: %, career_3: %)
-      - strongest subject (max gpa by subject)
-      - weakest subject (min gpa by subject)
-    
+      - strongest and weakest subject (max and min gpa by subject)*:
+        - select field_name, area, max(avg_grade) or min(avg_grade)
+          from (
+            select f.field_name, f.area, avg(g.grade) as avg_grade
+            from student s, grade g, course c, field f
+            where s.id = g.student_id
+            and g.course_id = c.id
+            and c.field_id = f.id
+            and s.id = 7
+          );
     - School Snapshot:
       - historical class ranking:
         - average median-salary by graduating class
         - average gpa by graduating class
       - most common occupation (occupation_1: %, occupation_2: %, occupation_3: %)
       - historical gpa analysis (mean|median|mode for all recorded students)
+
+* - resolved/implemented
