@@ -23,6 +23,7 @@ To-Do:
     - each school lives in its own container?
     - organize endpoint code into seperate controllers (by entity/model object)
     - seperate model objects from non-model objects (directory structure)
+    - add __repr__ methods to snapshot classes
 
 Application Design:
     - in order of implementation level:
