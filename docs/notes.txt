@@ -21,8 +21,11 @@ To-Do:
     - generate first school snapshot:
 	    - aggregated using all data in database (we are currently storing data for one school)
     - each school lives in its own container?
-    - organize endpoint code into seperate controllers (by entity/model object)
-    - seperate model objects from non-model objects (directory structure)
+    - organize endpoint code into seperate controllers (by entity/model object)*
+    - seperate model objects from non-model objects (directory structure)*
+      - examples:
+        - models.db => model objects*
+        - models.snapshot => snapshot objects*
     - add __repr__ methods to snapshot classes
 
 Application Design:

@@ -1,10 +1,10 @@
 from sqlalchemy import Column, Integer, String, Float, Date, ForeignKey, func
 from sqlalchemy.orm import relationship
 from models.dbcontext import DbContext as db
-from models.grade import Grade
-from models.course import Course
-from models.field import Field
-from snapshot.studentsnapshot import StudentSnapshot
+from models.db.grade import Grade
+from models.db.course import Course
+from models.db.field import Field
+from models.db.occupation import Occupation
 
 class Student(db.Base):
     """
@@ -37,20 +37,6 @@ class Student(db.Base):
     @staticmethod
     def delete(session, student):
         session.delete(student)
-    
-    @classmethod
-    def snapshot(cls, session, student_id: int):
-        student = cls.find_by_id(session, student_id)
-        class_rank = cls.class_rank(session, student.grad_year, student.id)
-        hist_rank = cls.historical_rank(session, student_id)
-        # career_fit = cls.career_fit(session, student_id)
-        strongest_sub = cls.strongest_sub(session, student_id)
-        weakest_sub = cls.weakest_sub(session, student_id)
-        return StudentSnapshot(student=student,
-                               class_rank=class_rank,
-                               hist_rank=hist_rank,
-                               strongest_sub=strongest_sub,
-                               weakest_sub=weakest_sub)
 
     @classmethod
     def class_rank(cls, session, grad_year: int, student_id: int):

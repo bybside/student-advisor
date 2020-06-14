@@ -1,4 +1,4 @@
-from snapshot.subject import Subject
+from models.snapshot.subject import Subject
 
 class StudentSnapshot:
     def __init__(self, student, class_rank, hist_rank, strongest_sub, weakest_sub):

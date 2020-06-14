@@ -1,6 +1,9 @@
 from sqlalchemy import Column, String, Integer, ForeignKey
 from sqlalchemy.orm import relationship
 from models.dbcontext import DbContext as db
+from models.db.field import Field
+from models.db.faculty import Faculty
+from models.db.semester import Semester
 
 class Course(db.Base):
     """
