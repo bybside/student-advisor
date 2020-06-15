@@ -1,5 +1,7 @@
+from datetime import date
 from sqlalchemy import Column, Integer, String, Float, Date, ForeignKey, func
 from sqlalchemy.orm import relationship
+from sqlalchemy.sql.expression import literal
 from models.dbcontext import DbContext as db
 from models.db.grade import Grade
 from models.db.course import Course
@@ -62,8 +64,42 @@ class Student(db.Base):
         return rank.scalar()
 
     @classmethod
-    def career_fit(cls, session, student_id: int):
-        pass
+    def career_fit(cls, session, student):
+        """
+        returns most closely matched (top 3) occupations
+        and former students when compared to a given student
+        """
+        # get current snapshot info
+        student_snapshot = session.query(StudentSnapshot).filter(id == student.id).one()
+        # get all former students with a gpa within +-.05 of student
+        gpa_q = session.query(cls.id, cls.occupation_id, literal(3).label("sim_score")).\
+                filter(cls.grad_year < date.year).\
+                filter(cls.gpa >= (student.gpa - .05) and cls.gpa <= (student.gpa + .05))
+        # get all former students whose strongest subject is same as student
+        strongest_sub_q = session.query(cls.id, cls.occupation_id, literal(2).label("sim_score")).\
+                          join(StudentSnapshot).\
+                          filter(cls.grad_year < date.year).\
+                          filter(StudentSnapshot.strongest_sub_id == student_snapshot.strongest_sub_id)
+        # get all former students whose weakest subject is same as student
+        weakest_sub_q = session.query(cls.id, cls.occupation_id, literal(1).label("sim_score")).\
+                        join(StudentSnapshot).\
+                        filter(cls.grad_year < date.year).\
+                        filter(StudentSnapshot.weakest_sub_id == student_snapshot.weakest_sub_id)
+        # union of above 3 queries
+        fit_values = gpa_q.union(strongest_sub_q).union(weakest_sub_q).subquery()
+        sum_func = func.sum(fit_values.c.sim_score).label("total_score")
+        # get top 3 students with highest similarity score
+        top_students = session.query(fit_values.c.id, sum_func).\
+                       group_by(fit_values.c.id).\
+                       order_by(sum_func.desc()).\
+                       limit(3).\
+                       all()
+        # get top 3 occupations with highest similarity score
+        top_occupations = session.query(fit_values.c.occupation_id, sum_func).\
+                          group_by(fit_values.c.occupation_id).\
+                          order_by(sum_func.desc()).\
+                          limit(3).\
+                          all()
 
     @classmethod
     def strongest_sub(cls, session, student_id: int):

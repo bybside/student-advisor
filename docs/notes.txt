@@ -27,6 +27,9 @@ To-Do:
         - models.db => model objects*
         - models.snapshot => snapshot objects*
     - add __repr__ methods to snapshot classes
+    - convert StudentSnapshot to model class; pull precomputed values from student_snapshot
+      table (batch processed the night before) instead of recomputing snapshot values
+      for each student request
 
 Application Design:
     - in order of implementation level:
@@ -61,6 +64,11 @@ Notes:
           )
           where id = <student_id>;
       - career fit (career_1: %, career_2: %, career_3: %)
+        - find student by id
+        - query students table for students with like attributes:
+          - GPA +-.05
+          - same or similar strongest subject
+          - same or similar weakest subject
       - strongest and weakest subject (max and min gpa by subject)*:
         - select field_name, area, max(avg_grade) or min(avg_grade)
           from (

@@ -14,7 +14,7 @@ create table occupation (
 );
 -- if table exists drop it
 drop table if exists student;
--- create students table
+-- create student table
 create table student (
     id serial primary key,
     fname text,
@@ -23,6 +23,19 @@ create table student (
     grad_year integer,
     gpa real,
     occupation_id integer references occupation (id)
+);
+-- if table exists drop it
+drop table if exists student_snapshot;
+-- create student_snapshot table
+create table student_snapshot (
+    class_rank integer,
+    hist_rank integer,
+    strongest_sub_id integer references field (id),
+    strongest_sub_avg real,
+    weakest_sub_id integer references field (id),
+    weakest_sub_avg real,
+    student_id integer references student (id),
+    primary key (student_id)
 );
 -- if table exists drop it
 drop table if exists field;
