@@ -25,19 +25,6 @@ create table student (
     occupation_id integer references occupation (id)
 );
 -- if table exists drop it
-drop table if exists student_snapshot;
--- create student_snapshot table
-create table student_snapshot (
-    class_rank integer,
-    hist_rank integer,
-    strongest_sub_id integer references field (id),
-    strongest_sub_avg real,
-    weakest_sub_id integer references field (id),
-    weakest_sub_avg real,
-    student_id integer references student (id),
-    primary key (student_id)
-);
--- if table exists drop it
 drop table if exists field;
 -- create field (subject) table
 create table field (
@@ -80,6 +67,19 @@ create table grade (
     course_id integer references course (id),
     primary key(student_id, course_id)
 );
+-- if table exists drop it
+drop table if exists student_snapshot;
+-- create student_snapshot table
+create table student_snapshot (
+    class_rank integer,
+    hist_rank integer,
+    strongest_sub_id integer references field (id),
+    strongest_sub_avg real,
+    weakest_sub_id integer references field (id),
+    weakest_sub_avg real,
+    student_id integer references student (id),
+    primary key (student_id)
+);
 -- update table owner to your user
 alter table occupation owner to <db_user>;
 alter table student owner to <db_user>;
@@ -88,3 +88,4 @@ alter table faculty owner to <db_user>;
 alter table semester owner to <db_user>;
 alter table course owner to <db_user>;
 alter table grade owner to <db_user>;
+alter table student_snapshot owner to <db_user>;

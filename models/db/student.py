@@ -7,6 +7,7 @@ from models.db.grade import Grade
 from models.db.course import Course
 from models.db.field import Field
 from models.db.occupation import Occupation
+from models.db.studentsnapshot import StudentSnapshot
 
 class Student(db.Base):
     """
@@ -39,6 +40,22 @@ class Student(db.Base):
     @staticmethod
     def delete(session, student):
         session.delete(student)
+    
+    @classmethod
+    def generate_all_snapshots(cls, session):
+        """
+        this will run as a batch process in the evenings
+        to improve speed of daily requests;
+        generating per student not per existing snapshot
+        to account for students added between batches 
+        """
+        for student in cls.get_all(session):
+            snapshot = StudentSnapshot(student=student,
+                                       class_rank=cls.class_rank(session, student.grad_year, student.id),
+                                       hist_rank=cls.historical_rank(session, student.id),
+                                       strongest_sub=cls.strongest_sub(session, student.id),
+                                       weakest_sub=cls.weakest_sub(session, student.id))
+            session.add(snapshot)
 
     @classmethod
     def class_rank(cls, session, grad_year: int, student_id: int):
@@ -64,13 +81,14 @@ class Student(db.Base):
         return rank.scalar()
 
     @classmethod
-    def career_fit(cls, session, student):
+    def career_fit(cls, session, student_id: int):
         """
-        returns most closely matched (top 3) occupations
-        and former students when compared to a given student
+        returns (top 3) occupations and former students
+        that most closely match the given student
         """
         # get current snapshot info
-        student_snapshot = session.query(StudentSnapshot).filter(id == student.id).one()
+        student = cls.find_by_id(session, student_id)
+        student_snapshot = session.query(StudentSnapshot).filter_by(student_id=student_id).one()
         # get all former students with a gpa within +-.05 of student
         gpa_q = session.query(cls.id, cls.occupation_id, literal(3).label("sim_score")).\
                 filter(cls.grad_year < date.year).\
@@ -100,37 +118,39 @@ class Student(db.Base):
                           order_by(sum_func.desc()).\
                           limit(3).\
                           all()
+        
+        return (top_students, top_occupations)
 
     @classmethod
     def strongest_sub(cls, session, student_id: int):
         avg_func = func.avg(Grade.grade).label("avg_grade")
-        subq = session.query(cls.id, Field.field_name, Field.area, avg_func).\
+        subq = session.query(cls.id, Field.id.label("field_id"), avg_func).\
                join(Grade).\
                join(Course).\
                join(Field).\
                filter(cls.id == student_id).\
-               group_by(cls.id, Field.field_name, Field.area).\
+               group_by(cls.id, Field.id).\
                subquery()
         
         max_func = func.max(subq.c.avg_grade).label("max_avg_grade")
-        maxsub = session.query(subq.c.field_name, subq.c.area, max_func).\
-                 group_by(subq.c.field_name, subq.c.area)
+        maxsub = session.query(subq.c.field_id, max_func).\
+                 group_by(subq.c.field_id)
         return maxsub.one()
     
     @classmethod
     def weakest_sub(cls, session, student_id: int):
         avg_func = func.avg(Grade.grade).label("avg_grade")
-        subq = session.query(cls.id, Field.field_name, Field.area, avg_func).\
+        subq = session.query(cls.id, Field.id.label("field_id"), avg_func).\
                join(Grade).\
                join(Course).\
                join(Field).\
                filter(cls.id == student_id).\
-               group_by(cls.id, Field.field_name, Field.area).\
+               group_by(cls.id, Field.id).\
                subquery()
         
         min_func = func.min(subq.c.avg_grade).label("min_avg_grade")
-        minsub = session.query(subq.c.field_name, subq.c.area, min_func).\
-                 group_by(subq.c.field_name, subq.c.area)
+        minsub = session.query(subq.c.field_id, min_func).\
+                 group_by(subq.c.field_id)
         return minsub.one()
 
     @classmethod

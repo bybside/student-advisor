@@ -26,6 +26,11 @@ class Occupation(db.Base):
         return session.query(cls).all()
 
     @classmethod
+    def find_by_id(cls, session, occupation_id: int):
+        query = session.query(cls).filter_by(id=occupation_id)
+        return query.one()
+
+    @classmethod
     def find_by_name(cls, session, occupation_name: str):
         query = session.query(cls).filter_by(occupation_name=occupation_name)
         return query.one()
