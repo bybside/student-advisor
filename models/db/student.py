@@ -1,7 +1,8 @@
 from datetime import date
-from sqlalchemy import Column, Integer, String, Float, Date, ForeignKey, func
+from collections import namedtuple
+from sqlalchemy import Column, Integer, String, Float, Date, ForeignKey, func, and_
 from sqlalchemy.orm import relationship
-from sqlalchemy.sql.expression import literal
+from sqlalchemy.sql.expression import literal, union
 from models.dbcontext import DbContext as db
 from models.db.grade import Grade
 from models.db.course import Course
@@ -24,6 +25,7 @@ class Student(db.Base):
     occupation_id = Column(Integer, ForeignKey("occupation.id"))
     occupation = relationship("Occupation")
     grades = relationship("Grade")
+    snapshot = relationship("StudentSnapshot", uselist=False)
 
     def __init__(self, fname, lname, dob, grad_year, gpa, occupation_id):
         self.fname = fname
@@ -50,12 +52,22 @@ class Student(db.Base):
         to account for students added between batches 
         """
         for student in cls.get_all(session):
-            snapshot = StudentSnapshot(student=student,
-                                       class_rank=cls.class_rank(session, student.grad_year, student.id),
-                                       hist_rank=cls.historical_rank(session, student.id),
-                                       strongest_sub=cls.strongest_sub(session, student.id),
-                                       weakest_sub=cls.weakest_sub(session, student.id))
-            session.add(snapshot)
+            class_rank = cls.class_rank(session, student.grad_year, student.id)
+            hist_rank = cls.historical_rank(session, student.id)
+            strongest_sub = cls.strongest_sub(session, student.id)
+            weakest_sub = cls.weakest_sub(session, student.id)
+            if student.snapshot is None:
+                student.snapshot = StudentSnapshot(student_id=student.id,
+                                                   class_rank=class_rank,
+                                                   hist_rank=hist_rank,
+                                                   strongest_sub=strongest_sub,
+                                                   weakest_sub=weakest_sub)
+            else:
+                student.snapshot.class_rank = class_rank
+                student.snapshot.hist_rank = hist_rank
+                student.snapshot.strongest_sub_id, student.snapshot.strongest_sub_avg = strongest_sub
+                student.snapshot.weakest_sub_id, student.snapshot.weakest_sub_avg = weakest_sub
+            cls.add(session, student)
 
     @classmethod
     def class_rank(cls, session, grad_year: int, student_id: int):
@@ -88,33 +100,42 @@ class Student(db.Base):
         """
         # get current snapshot info
         student = cls.find_by_id(session, student_id)
-        student_snapshot = session.query(StudentSnapshot).filter_by(student_id=student_id).one()
+        # used when filtering students by grad year
+        # d = date.today()
+        # dummy grad date for testing
+        d = date(2023, 1, 1)
         # get all former students with a gpa within +-.05 of student
-        gpa_q = session.query(cls.id, cls.occupation_id, literal(3).label("sim_score")).\
-                filter(cls.grad_year < date.year).\
-                filter(cls.gpa >= (student.gpa - .05) and cls.gpa <= (student.gpa + .05))
+        gpa_q = session.query(cls.id.label("sid"),
+                              cls.occupation_id.label("oid"),
+                              literal(3).label("sim_score")).\
+                filter(cls.grad_year < d.year).\
+                filter(and_(cls.gpa >= (student.gpa - .05), cls.gpa <= (student.gpa + .05)))
         # get all former students whose strongest subject is same as student
-        strongest_sub_q = session.query(cls.id, cls.occupation_id, literal(2).label("sim_score")).\
+        strongest_sub_q = session.query(cls.id.label("sid"),
+                                        cls.occupation_id.label("oid"),
+                                        literal(2).label("sim_score")).\
                           join(StudentSnapshot).\
-                          filter(cls.grad_year < date.year).\
-                          filter(StudentSnapshot.strongest_sub_id == student_snapshot.strongest_sub_id)
+                          filter(cls.grad_year < d.year).\
+                          filter(StudentSnapshot.strongest_sub_id == student.snapshot.strongest_sub_id)
         # get all former students whose weakest subject is same as student
-        weakest_sub_q = session.query(cls.id, cls.occupation_id, literal(1).label("sim_score")).\
+        weakest_sub_q = session.query(cls.id.label("sid"),
+                                      cls.occupation_id.label("oid"),
+                                      literal(1).label("sim_score")).\
                         join(StudentSnapshot).\
-                        filter(cls.grad_year < date.year).\
-                        filter(StudentSnapshot.weakest_sub_id == student_snapshot.weakest_sub_id)
+                        filter(cls.grad_year < d.year).\
+                        filter(StudentSnapshot.weakest_sub_id == student.snapshot.weakest_sub_id)
         # union of above 3 queries
-        fit_values = gpa_q.union(strongest_sub_q).union(weakest_sub_q).subquery()
+        fit_values = union(gpa_q, strongest_sub_q, weakest_sub_q).alias("fit_values")
         sum_func = func.sum(fit_values.c.sim_score).label("total_score")
         # get top 3 students with highest similarity score
-        top_students = session.query(fit_values.c.id, sum_func).\
-                       group_by(fit_values.c.id).\
+        top_students = session.query(fit_values.c.sid, sum_func).\
+                       group_by(fit_values.c.sid).\
                        order_by(sum_func.desc()).\
                        limit(3).\
                        all()
         # get top 3 occupations with highest similarity score
-        top_occupations = session.query(fit_values.c.occupation_id, sum_func).\
-                          group_by(fit_values.c.occupation_id).\
+        top_occupations = session.query(fit_values.c.oid, sum_func).\
+                          group_by(fit_values.c.oid).\
                           order_by(sum_func.desc()).\
                           limit(3).\
                           all()
@@ -134,8 +155,9 @@ class Student(db.Base):
         
         max_func = func.max(subq.c.avg_grade).label("max_avg_grade")
         maxsub = session.query(subq.c.field_id, max_func).\
-                 group_by(subq.c.field_id)
-        return maxsub.one()
+                 group_by(subq.c.field_id).\
+                 order_by(max_func.desc())
+        return maxsub.first()
     
     @classmethod
     def weakest_sub(cls, session, student_id: int):
@@ -150,8 +172,9 @@ class Student(db.Base):
         
         min_func = func.min(subq.c.avg_grade).label("min_avg_grade")
         minsub = session.query(subq.c.field_id, min_func).\
-                 group_by(subq.c.field_id)
-        return minsub.one()
+                 group_by(subq.c.field_id).\
+                 order_by(min_func)
+        return minsub.first()
 
     @classmethod
     def get_all(cls, session):

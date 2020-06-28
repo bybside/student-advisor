@@ -63,12 +63,25 @@ Notes:
             from student
           )
           where id = <student_id>;
-      - career fit (career_1: %, career_2: %, career_3: %)
-        - find student by id
-        - query students table for students with like attributes:
-          - GPA +-.05
-          - same or similar strongest subject
-          - same or similar weakest subject
+      - career fit (career_1: sim_score, career_2: sim_score, career_3: sim_score)*
+        - SELECT sid AS sid, sum(sim_score) AS total_score
+          FROM (SELECT student.id AS sid, student.occupation_id AS oid, %(param_1)s AS sim_score 
+                FROM student 
+                WHERE student.grad_year < %(grad_year_1)s AND student.gpa >= %(gpa_1)s AND student.gpa <= %(gpa_2)s
+                UNION
+                SELECT student.id AS sid, student.occupation_id AS oid, %(param_2)s AS sim_score 
+                FROM student
+                JOIN student_snapshot 
+                ON student.id = student_snapshot.student_id 
+                WHERE student.grad_year < %(grad_year_2)s AND student_snapshot.strongest_sub_id = %(strongest_sub_id_1)s
+                UNION
+                SELECT student.id AS sid, student.occupation_id AS oid, %(param_3)s AS sim_score 
+                FROM student JOIN student_snapshot ON student.id = student_snapshot.student_id 
+                WHERE student.grad_year < %(grad_year_3)s AND student_snapshot.weakest_sub_id = %(weakest_sub_id_1)s
+          ) as fit_values
+          GROUP BY sid
+          ORDER BY total_score DESC 
+          LIMIT %(param_4)s
       - strongest and weakest subject (max and min gpa by subject)*:
         - select field_name, area, max(avg_grade) or min(avg_grade)
           from (
